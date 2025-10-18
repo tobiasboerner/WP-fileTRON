@@ -611,6 +611,7 @@ export default function MediaGrid() {
 					className="wft-mb-4 wft-flex wft-flex-wrap wft-items-center wft-justify-between wft-gap-3 wft-bg-blue-50 wft-border wft-border-blue-200 wft-rounded-md wft-px-4 wft-py-2"
 					role="status"
 					aria-live="polite"
+					data-testid="wft-selection-toolbar"
 				>
 					<span className="wft-text-sm wft-font-medium wft-text-blue-800">
 						{ sprintf(

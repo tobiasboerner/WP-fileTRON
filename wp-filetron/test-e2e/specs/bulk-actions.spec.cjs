@@ -28,6 +28,9 @@ test.describe( 'Bulk media actions', () => {
 	await expect( page.locator( '#wft-app' ) ).toBeVisible();
 
 	await selectMediaCard( page, media );
+	await expect(
+		page.locator( '[data-testid="wft-selection-toolbar"]' )
+	).toBeVisible( { timeout: 10_000 } );
 	const previewButton = page.locator(
 		'button[data-testid="wft-preview-action"]'
 	);
@@ -69,6 +72,9 @@ test.describe( 'Bulk media actions', () => {
 	await expect( page.locator( '#wft-app' ) ).toBeVisible();
 
 	await selectMediaCard( page, media );
+	await expect(
+		page.locator( '[data-testid="wft-selection-toolbar"]' )
+	).toBeVisible( { timeout: 10_000 } );
 	const moveButton = page.locator( 'button[data-testid="wft-move-action"]' );
 	await expect( moveButton ).toBeEnabled();
 	await moveButton.click();
@@ -107,6 +113,9 @@ test.describe( 'Bulk media actions', () => {
 	await expect( page.locator( '#wft-app' ) ).toBeVisible();
 
 	await selectMediaCard( page, media );
+	await expect(
+		page.locator( '[data-testid="wft-selection-toolbar"]' )
+	).toBeVisible( { timeout: 10_000 } );
 	const deleteButton = page.locator(
 		'button[data-testid="wft-delete-action"]'
 	);
