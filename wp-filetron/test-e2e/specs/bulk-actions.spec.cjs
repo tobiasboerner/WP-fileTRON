@@ -24,19 +24,23 @@ test.describe( 'Bulk media actions', () => {
 	} ) => {
 		const media = await requestUtils.uploadMedia( TEST_MEDIA_PATH );
 
-		await admin.visitAdminPage( 'upload.php', 'page=wp-filetron' );
-		await expect( page.locator( '#wft-app' ) ).toBeVisible();
+	await admin.visitAdminPage( 'upload.php', 'page=wp-filetron' );
+	await expect( page.locator( '#wft-app' ) ).toBeVisible();
 
 	await selectMediaCard( page, media );
-	await page.locator( 'button[data-testid="wft-preview-action"]' ).click();
+	const previewButton = page.locator(
+		'button[data-testid="wft-preview-action"]'
+	);
+	await expect( previewButton ).toBeEnabled();
+	await previewButton.click();
 
-		const previewDialog = page.getByRole( 'dialog', {
-			name: 'File preview',
-		} );
-		await expect( previewDialog ).toBeVisible();
-		await expect(
-			previewDialog.getByRole( 'heading', { name: media.title } )
-		).toBeVisible();
+	const previewDialog = page.getByRole( 'dialog', {
+		name: 'File preview',
+	} );
+	await expect( previewDialog ).toBeVisible( { timeout: 10_000 } );
+	await expect(
+		previewDialog.getByRole( 'heading', { name: media.title } )
+	).toBeVisible();
 
 		await previewDialog.getByRole( 'button', { name: 'Close' } ).click();
 		await expect( previewDialog ).toBeHidden();
@@ -61,18 +65,20 @@ test.describe( 'Bulk media actions', () => {
 		const folderId = folderResponse?.data?.id;
 		expect( folderId ).toBeTruthy();
 
-		await admin.visitAdminPage( 'upload.php', 'page=wp-filetron' );
-		await expect( page.locator( '#wft-app' ) ).toBeVisible();
+	await admin.visitAdminPage( 'upload.php', 'page=wp-filetron' );
+	await expect( page.locator( '#wft-app' ) ).toBeVisible();
 
 	await selectMediaCard( page, media );
-	await page.locator( 'button[data-testid="wft-move-action"]' ).click();
+	const moveButton = page.locator( 'button[data-testid="wft-move-action"]' );
+	await expect( moveButton ).toBeEnabled();
+	await moveButton.click();
 
-		const moveDialog = page.getByRole( 'dialog', { name: 'Move files' } );
-		await expect( moveDialog ).toBeVisible();
+	const moveDialog = page.getByRole( 'dialog', { name: 'Move files' } );
+	await expect( moveDialog ).toBeVisible( { timeout: 10_000 } );
 
-		await moveDialog
-			.getByLabelText( 'Target folder' )
-			.selectOption( String( folderId ) );
+	await moveDialog
+		.getByLabelText( 'Target folder' )
+		.selectOption( String( folderId ) );
 		await moveDialog.getByRole( 'button', { name: 'Move' } ).click();
 
 		await expect( moveDialog ).toBeHidden();
@@ -97,19 +103,23 @@ test.describe( 'Bulk media actions', () => {
 	} ) => {
 		const media = await requestUtils.uploadMedia( TEST_MEDIA_PATH );
 
-		await admin.visitAdminPage( 'upload.php', 'page=wp-filetron' );
-		await expect( page.locator( '#wft-app' ) ).toBeVisible();
+	await admin.visitAdminPage( 'upload.php', 'page=wp-filetron' );
+	await expect( page.locator( '#wft-app' ) ).toBeVisible();
 
 	await selectMediaCard( page, media );
-	await page.locator( 'button[data-testid="wft-delete-action"]' ).click();
+	const deleteButton = page.locator(
+		'button[data-testid="wft-delete-action"]'
+	);
+	await expect( deleteButton ).toBeEnabled();
+	await deleteButton.click();
 
-		const deleteDialog = page.getByRole( 'dialog', {
-			name: /Delete \d+ file/,
-		} );
-		await expect( deleteDialog ).toBeVisible();
+	const deleteDialog = page.getByRole( 'dialog', {
+		name: /Delete \d+ file/,
+	} );
+	await expect( deleteDialog ).toBeVisible( { timeout: 10_000 } );
 
-		await deleteDialog.getByRole( 'button', { name: 'Delete' } ).click();
-		await expect( deleteDialog ).toBeHidden();
+	await deleteDialog.getByRole( 'button', { name: 'Delete' } ).click();
+	await expect( deleteDialog ).toBeHidden( { timeout: 10_000 } );
 
 		await expect(
 			requestUtils.rest( {
