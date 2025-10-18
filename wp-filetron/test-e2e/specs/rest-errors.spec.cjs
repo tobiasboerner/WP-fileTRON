@@ -5,6 +5,7 @@
  * signalisiert werden und der Client aussagekräftige Codes erhält.
  */
 
+const fs = require( 'fs/promises' );
 const path = require( 'path' );
 const { test, expect } = require( '@wordpress/e2e-test-utils-playwright' );
 const { request: playwrightRequest } = require( '@playwright/test' );
@@ -30,6 +31,30 @@ test.describe( 'REST API Fehlerpfade', () => {
 			code: expect.stringMatching(
 				/(invalid_folder_name|rest_invalid_param)/
 			),
+			data: expect.objectContaining( { status: 400 } ),
+		} );
+	} );
+
+	test( 'verhindert Media-Upload mit unbekanntem Ordner', async ( {
+		requestUtils,
+	} ) => {
+		const fileBuffer = await fs.readFile( TEST_MEDIA_PATH );
+
+		await expect(
+			requestUtils.rest( {
+				method: 'POST',
+				path: '/wft/v1/media/upload',
+				multipart: {
+					file: {
+						name: 'sample-upload.png',
+						mimeType: 'image/png',
+						buffer: fileBuffer,
+					},
+					folder_id: '999999',
+				},
+			} )
+		).rejects.toMatchObject( {
+			code: 'folder_not_found',
 			data: expect.objectContaining( { status: 400 } ),
 		} );
 	} );
@@ -243,6 +268,21 @@ test.describe( 'REST API Fehlerpfade', () => {
 		}
 	} );
 
+	test( 'meldet unbekannte Medien-ID bei Tag-Zuordnung', async ( {
+		requestUtils,
+	} ) => {
+		await expect(
+			requestUtils.rest( {
+				method: 'POST',
+				path: '/wft/v1/media/999999/tags',
+				data: { tag_ids: [ 1 ] },
+			} )
+		).rejects.toMatchObject( {
+			code: 'media_not_found',
+			data: expect.objectContaining( { status: 404 } ),
+		} );
+	} );
+
 	test( 'validiert Tag-Zuordnung mit nicht existierendem Tag', async ( {
 		requestUtils,
 	} ) => {
@@ -258,6 +298,27 @@ test.describe( 'REST API Fehlerpfade', () => {
 			).rejects.toMatchObject( {
 				code: 'tag_not_found',
 				data: expect.objectContaining( { status: 404 } ),
+			} );
+		} finally {
+			await requestUtils.deleteMedia( media.id );
+		}
+	} );
+
+	test( 'verhindert Media-Update mit unbekanntem Ordner', async ( {
+		requestUtils,
+	} ) => {
+		const media = await requestUtils.uploadMedia( TEST_MEDIA_PATH );
+
+		try {
+			await expect(
+				requestUtils.rest( {
+					method: 'PUT',
+					path: `/wft/v1/media/${ media.id }`,
+					data: { folder_id: 999999 },
+				} )
+			).rejects.toMatchObject( {
+				code: 'folder_not_found',
+				data: expect.objectContaining( { status: 400 } ),
 			} );
 		} finally {
 			await requestUtils.deleteMedia( media.id );
@@ -313,6 +374,22 @@ test.describe( 'REST API Fehlerpfade', () => {
 			} )
 		).rejects.toMatchObject( {
 			code: 'rest_missing_callback_param',
+			data: expect.objectContaining( { status: 400 } ),
+		} );
+	} );
+
+	test( 'verlangt Tag-IDs bei Bulk-Tagging', async ( { requestUtils } ) => {
+		await expect(
+			requestUtils.rest( {
+				method: 'POST',
+				path: '/wft/v1/media/bulk',
+				data: {
+					media_ids: [ 123 ],
+					action: 'tag',
+				},
+			} )
+		).rejects.toMatchObject( {
+			code: 'missing_tag_ids',
 			data: expect.objectContaining( { status: 400 } ),
 		} );
 	} );
