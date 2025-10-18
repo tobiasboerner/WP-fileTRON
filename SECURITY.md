@@ -13,10 +13,7 @@ WP fileTRON is an open-source WordPress plugin. Security and transparency are ou
 
 ## Supported Versions
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 1.x     | :white_check_mark: |
-| < 1.0   | :x:                |
+-
 
 ## Reporting a Vulnerability
 
@@ -25,11 +22,11 @@ WP fileTRON is an open-source WordPress plugin. Security and transparency are ou
 If you discover a security vulnerability, please follow these steps:
 
 1. **Private Disclosure**: Use GitHub Security Advisories (preferred)
-   - Go to: https://github.com/[your-username]/wp-filetron/security/advisories
+   - Go to: https://github.com/tobiasboerner/wp-filetron/security/advisories
    - Click "Report a vulnerability"
 
 2. **Email**: If you prefer email, contact us at:
-   - [YOUR-EMAIL] (add your security contact email here)
+   - projects@tobiasboerner.de
    - Subject: "Security Vulnerability in WP fileTRON"
 
 3. **What to include:**
