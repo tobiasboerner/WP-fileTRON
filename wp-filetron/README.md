@@ -133,11 +133,11 @@ Built with:
 
 ## Roadmap & nächste Schritte
 
-1. Bulk-Aktions-E2E stabilisieren (Modal-Öffnung im Headless-Run fixen) und `.wp-env`-Setup dokumentieren.
-2. Drag-and-Drop-Interaktionen für Ordner neu aufsetzen und regressionssicher ausliefern.
-3. REST-Fehlerpfade für Delete/Move weiter schärfen und Capability-Checks dokumentieren.
-4. Release-Candidate-Härtung: Security-Scans (`npm audit`, `composer audit`, WPScan`) und Performance-Profiling.
-5. Phase-6-Nacharbeiten: Preview-Modal verfeinern, Doku & Screenshots ergänzen.
+- ✅ Bulk-Aktions-Flows stabilisiert: Modale rendern wieder zuverlässig, Playwright (`npm run test:e2e -- test-e2e/specs/bulk-actions.spec.cjs`) läuft grün.
+- 🔜 Drag-and-Drop-Interaktionen für Ordner neu aufsetzen und regressionssicher ausliefern.
+- 🔜 REST-Fehlerpfade für Delete/Move weiter schärfen und Capability-Checks dokumentieren.
+- 🛡️ Release-Candidate-Härtung: Security-Scans (`npm audit`, `composer audit`, WPScan`) und Performance-Profiling.
+- ✍️ Phase-6-Nacharbeiten: Preview-Modal verfeinern, Doku & Screenshots ergänzen.
 
 ---
 

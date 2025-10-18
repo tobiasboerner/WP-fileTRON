@@ -48,7 +48,10 @@ export default function MediaPreviewModal( { item, onRequestClose } ) {
 			onRequestClose={ onRequestClose }
 			className="wft-filetron-modal"
 		>
-			<div className="wft-space-y-4">
+			<div
+				className="wft-space-y-4"
+				data-testid="wft-preview-modal"
+			>
 				<div className="wft-rounded-md wft-overflow-hidden wft-bg-gray-100">
 					{ preview ? (
 						<img
@@ -117,7 +120,11 @@ export default function MediaPreviewModal( { item, onRequestClose } ) {
 				</dl>
 
 				<div className="wft-flex wft-justify-end">
-					<Button variant="secondary" onClick={ onRequestClose }>
+					<Button
+						variant="secondary"
+						onClick={ onRequestClose }
+						data-testid="wft-preview-close"
+					>
 						{ __( 'Close', 'wp-filetron' ) }
 					</Button>
 				</div>

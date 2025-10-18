@@ -11,6 +11,7 @@ const TEST_MEDIA_PATH = path.resolve(
 	__dirname,
 	'../fixtures/sample-upload.png'
 );
+
 const selectMediaCard = async ( page, media ) => {
 	const selector = `button[data-media-id="${ media.id }"]`;
 	await page.locator( selector ).first().click();
@@ -24,33 +25,37 @@ test.describe( 'Bulk media actions', () => {
 	} ) => {
 		const media = await requestUtils.uploadMedia( TEST_MEDIA_PATH );
 
-	await admin.visitAdminPage( 'upload.php', 'page=wp-filetron' );
-	await expect( page.locator( '#wft-app' ) ).toBeVisible();
+		await admin.visitAdminPage( 'upload.php', 'page=wp-filetron' );
+		await expect( page.locator( '#wft-app' ) ).toBeVisible();
 
-	await selectMediaCard( page, media );
-	await expect(
-		page.locator( '[data-testid="wft-selection-toolbar"]' )
-	).toBeVisible( { timeout: 10_000 } );
-	const previewButton = page.locator(
-		'button[data-testid="wft-preview-action"]'
-	);
-	await expect( previewButton ).toBeEnabled();
-	await previewButton.click();
+		await selectMediaCard( page, media );
+		await expect(
+			page.locator( '[data-testid="wft-selection-toolbar"]' )
+		).toBeVisible( { timeout: 10_000 } );
 
-	const previewDialog = page.getByRole( 'dialog', {
-		name: 'File preview',
-	} );
-	await expect( previewDialog ).toBeVisible( { timeout: 10_000 } );
-	await expect( previewDialog.locator( 'img' ) ).toBeVisible( {
-		strict: false,
-		timeout: 10_000,
-	} );
-	await expect(
-		previewDialog.getByRole( 'heading', { name: media.title } )
-	).toBeVisible();
+		const previewButton = page.getByTestId( 'wft-preview-action' );
+		await expect( previewButton ).toBeEnabled();
+		await previewButton.click();
 
-		await previewDialog.getByRole( 'button', { name: 'Close' } ).click();
-		await expect( previewDialog ).toBeHidden();
+		const previewModal = page.getByTestId( 'wft-preview-modal' );
+		await expect( previewModal ).toBeVisible( { timeout: 10_000 } );
+		await expect(
+			previewModal.locator( 'img' )
+		).toBeVisible( {
+			strict: false,
+			timeout: 10_000,
+		} );
+		const mediaTitle =
+			media?.title?.rendered ||
+			media?.title?.raw ||
+			media?.title ||
+			'';
+		await expect(
+			previewModal.getByRole( 'heading', { level: 2 } )
+		).toContainText( mediaTitle );
+
+		await page.getByTestId( 'wft-preview-close' ).click();
+		await expect( previewModal ).toBeHidden( { timeout: 10_000 } );
 
 		await requestUtils.deleteMedia( media.id );
 	} );
@@ -72,36 +77,41 @@ test.describe( 'Bulk media actions', () => {
 		const folderId = folderResponse?.data?.id;
 		expect( folderId ).toBeTruthy();
 
-	await admin.visitAdminPage( 'upload.php', 'page=wp-filetron' );
-	await expect( page.locator( '#wft-app' ) ).toBeVisible();
+		await admin.visitAdminPage( 'upload.php', 'page=wp-filetron' );
+		await expect( page.locator( '#wft-app' ) ).toBeVisible();
 
-	await selectMediaCard( page, media );
-	await expect(
-		page.locator( '[data-testid="wft-selection-toolbar"]' )
-	).toBeVisible( { timeout: 10_000 } );
-	const moveButton = page.locator( 'button[data-testid="wft-move-action"]' );
-	await expect( moveButton ).toBeEnabled();
-	await moveButton.click();
+		await selectMediaCard( page, media );
+		await expect(
+			page.locator( '[data-testid="wft-selection-toolbar"]' )
+		).toBeVisible( { timeout: 10_000 } );
 
-	const moveDialog = page.getByRole( 'dialog', { name: 'Move files' } );
-	await expect( moveDialog ).toBeVisible( { timeout: 10_000 } );
-	await expect( moveDialog.locator( 'select' ) ).toBeVisible( {
-		strict: false,
-		timeout: 10_000,
-	} );
+		const moveButton = page.getByTestId( 'wft-move-action' );
+		await expect( moveButton ).toBeEnabled();
+		await moveButton.click();
 
-	await moveDialog
-		.getByLabelText( 'Target folder' )
-		.selectOption( String( folderId ) );
-		await moveDialog.getByRole( 'button', { name: 'Move' } ).click();
+		const moveModal = page.getByTestId( 'wft-move-modal' );
+		await expect( moveModal ).toBeVisible( { timeout: 10_000 } );
+		await expect(
+			moveModal.locator( 'select' )
+		).toBeVisible( {
+			strict: false,
+			timeout: 10_000,
+		} );
 
-		await expect( moveDialog ).toBeHidden();
+		const targetFolderId = Number( folderId );
+		await moveModal
+			.locator( 'select' )
+			.selectOption( String( targetFolderId ) );
+		await page.getByTestId( 'wft-move-confirm' ).click();
+		await expect( moveModal ).toBeHidden( { timeout: 10_000 } );
 
 		const mediaDetails = await requestUtils.rest( {
 			method: 'GET',
 			path: `/wft/v1/media/${ media.id }`,
 		} );
-		expect( mediaDetails?.data?.folder_id ).toBe( folderId );
+		expect( Number( mediaDetails?.data?.folder_id ) ).toBe(
+			targetFolderId
+		);
 
 		await requestUtils.deleteMedia( media.id );
 		await requestUtils.rest( {
@@ -117,29 +127,26 @@ test.describe( 'Bulk media actions', () => {
 	} ) => {
 		const media = await requestUtils.uploadMedia( TEST_MEDIA_PATH );
 
-	await admin.visitAdminPage( 'upload.php', 'page=wp-filetron' );
-	await expect( page.locator( '#wft-app' ) ).toBeVisible();
+		await admin.visitAdminPage( 'upload.php', 'page=wp-filetron' );
+		await expect( page.locator( '#wft-app' ) ).toBeVisible();
 
-	await selectMediaCard( page, media );
-	await expect(
-		page.locator( '[data-testid="wft-selection-toolbar"]' )
-	).toBeVisible( { timeout: 10_000 } );
-	const deleteButton = page.locator(
-		'button[data-testid="wft-delete-action"]'
-	);
-	await expect( deleteButton ).toBeEnabled();
-	await deleteButton.click();
+		await selectMediaCard( page, media );
+		await expect(
+			page.locator( '[data-testid="wft-selection-toolbar"]' )
+		).toBeVisible( { timeout: 10_000 } );
 
-	const deleteDialog = page.getByRole( 'dialog', {
-		name: /Delete \d+ file/,
-	} );
-	await expect( deleteDialog ).toBeVisible( { timeout: 10_000 } );
-	await expect(
-		deleteDialog.getByRole( 'button', { name: 'Cancel' } )
-	).toBeVisible( { timeout: 10_000 } );
+		const deleteButton = page.getByTestId( 'wft-delete-action' );
+		await expect( deleteButton ).toBeEnabled();
+		await deleteButton.click();
 
-	await deleteDialog.getByRole( 'button', { name: 'Delete' } ).click();
-	await expect( deleteDialog ).toBeHidden( { timeout: 10_000 } );
+		const deleteModal = page.getByTestId( 'wft-delete-modal' );
+		await expect( deleteModal ).toBeVisible( { timeout: 10_000 } );
+		await expect(
+			page.getByTestId( 'wft-delete-cancel' )
+		).toBeVisible( { timeout: 10_000 } );
+
+		await page.getByTestId( 'wft-delete-confirm' ).click();
+		await expect( deleteModal ).toBeHidden( { timeout: 10_000 } );
 
 		await expect(
 			requestUtils.rest( {

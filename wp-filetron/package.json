@@ -23,6 +23,7 @@
 		"lint:js:fix": "wp-scripts lint-js --fix",
 		"lint:pkg-json": "wp-scripts lint-pkg-json",
 		"packages-update": "wp-scripts packages-update",
+		"wp-env": "wp-env",
 		"test:e2e": "node ./tools/run-playwright.js",
 		"test:unit": "wp-scripts test-unit-js"
 	},
