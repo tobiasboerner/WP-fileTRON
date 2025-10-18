@@ -97,9 +97,9 @@ describe( 'FolderModal component sync', () => {
 			/>
 		);
 
-		expect(
-			screen.getByLabelText( 'Folder Name' )
-		).toHaveValue( 'Drafts' );
+		expect( screen.getByLabelText( 'Folder Name' ) ).toHaveValue(
+			'Drafts'
+		);
 		expect( screen.getByLabelText( 'Parent Folder' ) ).toHaveValue( '0' );
 
 		mockFolders = [
@@ -115,9 +115,9 @@ describe( 'FolderModal component sync', () => {
 			/>
 		);
 
-		expect(
-			screen.getByLabelText( 'Folder Name' )
-		).toHaveValue( 'Marketing' );
+		expect( screen.getByLabelText( 'Folder Name' ) ).toHaveValue(
+			'Marketing'
+		);
 		expect( screen.getByLabelText( 'Parent Folder' ) ).toHaveValue( '5' );
 	} );
 } );

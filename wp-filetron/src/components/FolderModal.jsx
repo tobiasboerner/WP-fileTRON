@@ -205,9 +205,11 @@ export default function FolderModal( {
 					id: Number( current.id ),
 					depth: 0,
 					label:
-						current.name || __( '(Untitled folder)', 'wp-filetron' ),
+						current.name ||
+						__( '(Untitled folder)', 'wp-filetron' ),
 					displayLabel:
-						current.name || __( '(Untitled folder)', 'wp-filetron' ),
+						current.name ||
+						__( '(Untitled folder)', 'wp-filetron' ),
 				} );
 			}
 		}
@@ -372,7 +374,7 @@ export default function FolderModal( {
 									)
 								}
 								className="wft-w-full wft-px-3 wft-py-2 wft-border wft-border-gray-300 wft-rounded-md focus:wft-outline-none focus:wft-ring-2 focus:wft-ring-blue-500"
-								>
+							>
 								<option value={ 0 }>
 									{ __(
 										'— Root (No Parent) —',

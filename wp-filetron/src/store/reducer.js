@@ -29,6 +29,7 @@ const DEFAULT_STATE = {
 	viewMode: 'grid', // 'grid' or 'list'
 	isLoading: false,
 	error: null,
+	previewMediaId: null,
 };
 
 const normalizeNumericId = ( value, { defaultValue = value } = {} ) => {
@@ -71,9 +72,7 @@ const expandIds = ( ids ) => {
 
 	const normalized = ids
 		.map( ( id ) =>
-			id === null || id === undefined
-				? id
-				: normalizeNumericId( id )
+			id === null || id === undefined ? id : normalizeNumericId( id )
 		)
 		.filter( ( id ) => id !== null && id !== undefined );
 
@@ -288,6 +287,67 @@ export function reducer( state = DEFAULT_STATE, action ) {
 			};
 		}
 
+		case 'REMOVE_MEDIA_ITEMS': {
+			const removalSet = new Set(
+				( Array.isArray( action.mediaIds ) ? action.mediaIds : [] ).map(
+					( id ) => normalizeNumericId( id )
+				)
+			);
+
+			if ( removalSet.size === 0 ) {
+				return state;
+			}
+
+			const filteredMedia = state.media.filter(
+				( item ) => ! removalSet.has( normalizeNumericId( item.id ) )
+			);
+			const removedCount = state.media.length - filteredMedia.length;
+			const filteredSelection = state.selectedMedia.filter(
+				( id ) => ! removalSet.has( normalizeNumericId( id ) )
+			);
+
+			return {
+				...state,
+				media: filteredMedia,
+				mediaTotal: Math.max( 0, state.mediaTotal - removedCount ),
+				selectedMedia: filteredSelection,
+				previewMediaId: removalSet.has( state.previewMediaId )
+					? null
+					: state.previewMediaId,
+			};
+		}
+
+		case 'UPDATE_MEDIA_FOLDERS': {
+			const targetFolder = normalizeNumericId( action.folderId, {
+				defaultValue: 0,
+			} );
+			const affectedIds = new Set(
+				( Array.isArray( action.mediaIds ) ? action.mediaIds : [] ).map(
+					( id ) => normalizeNumericId( id )
+				)
+			);
+
+			if ( affectedIds.size === 0 ) {
+				return state;
+			}
+
+			const updatedMedia = state.media.map( ( item ) => {
+				const normalizedId = normalizeNumericId( item.id );
+				if ( affectedIds.has( normalizedId ) ) {
+					return {
+						...item,
+						folder_id: targetFolder,
+					};
+				}
+				return item;
+			} );
+
+			return {
+				...state,
+				media: updatedMedia,
+			};
+		}
+
 		// UI Actions
 		case 'SET_VIEW_MODE':
 			return {
@@ -312,6 +372,21 @@ export function reducer( state = DEFAULT_STATE, action ) {
 			return {
 				...state,
 				error: null,
+			};
+
+		case 'SET_PREVIEW_MEDIA':
+			return {
+				...state,
+				previewMediaId:
+					action.mediaId === undefined || action.mediaId === null
+						? null
+						: normalizeNumericId( action.mediaId ),
+			};
+
+		case 'CLEAR_PREVIEW_MEDIA':
+			return {
+				...state,
+				previewMediaId: null,
 			};
 
 		default:

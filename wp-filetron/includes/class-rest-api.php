@@ -398,6 +398,24 @@ class REST_API {
 			)
 		);
 
+		// DELETE /media/{id} - Delete media.
+		register_rest_route(
+			self::API_NAMESPACE,
+			'/media/(?P<id>\d+)',
+			array(
+				'methods'             => \WP_REST_Server::DELETABLE,
+				'callback'            => array( $this, 'delete_media' ),
+				'permission_callback' => array( $this, 'check_permission' ),
+				'args'                => array(
+					'id' => array(
+						'type'              => 'integer',
+						'required'          => true,
+						'sanitize_callback' => 'absint',
+					),
+				),
+			)
+		);
+
 		// GET /media/{id}/usage - Get media usage.
 		register_rest_route(
 			self::API_NAMESPACE,
@@ -1272,6 +1290,45 @@ class REST_API {
 	}
 
 	/**
+	 * Delete media.
+	 *
+	 * @param \WP_REST_Request $request Request object.
+	 * @return \WP_REST_Response|\WP_Error
+	 */
+	public function delete_media( $request ) {
+		$media_id = absint( $request->get_param( 'id' ) );
+		$post     = get_post( $media_id );
+
+		if ( ! $post || 'attachment' !== $post->post_type ) {
+			return $this->error_response(
+				'media_not_found',
+				__( 'Media not found.', 'wp-filetron' ),
+				404
+			);
+		}
+
+		// Remove folder mapping prior to deletion.
+		Folder_Manager::assign_media_to_folder( $media_id, 0 );
+
+		$deleted = wp_delete_attachment( $media_id, true );
+
+		if ( false === $deleted ) {
+			return $this->error_response(
+				'media_delete_failed',
+				__( 'Failed to delete media.', 'wp-filetron' ),
+				500
+			);
+		}
+
+		return $this->success_response(
+			array(
+				'id' => $media_id,
+			),
+			__( 'Media deleted successfully.', 'wp-filetron' )
+		);
+	}
+
+	/**
 	 * Get media usage.
 	 *
 	 * @param \WP_REST_Request $request Request object.
@@ -1294,18 +1351,87 @@ class REST_API {
 		$media_ids = $request->get_param( 'media_ids' );
 		$action    = $request->get_param( 'action' );
 
+		if ( empty( $media_ids ) || ! is_array( $media_ids ) ) {
+			return $this->error_response(
+				'rest_invalid_param',
+				__( 'Media IDs are required.', 'wp-filetron' ),
+				400
+			);
+		}
+
 		$results = array(
-			'success' => 0,
-			'failed'  => 0,
+			'success_ids' => array(),
+			'failed'      => array(),
 		);
 
 		switch ( $action ) {
 			case 'delete':
 				foreach ( $media_ids as $media_id ) {
+					$media_id = absint( $media_id );
+					$post     = get_post( $media_id );
+
+					if ( ! $post || 'attachment' !== $post->post_type ) {
+						$results['failed'][] = array(
+							'id'   => $media_id,
+							'code' => 'media_not_found',
+						);
+						continue;
+					}
+
+					Folder_Manager::assign_media_to_folder( $media_id, 0 );
+
 					if ( wp_delete_attachment( $media_id, true ) ) {
-						$results['success']++;
+						$results['success_ids'][] = $media_id;
 					} else {
-						$results['failed']++;
+						$results['failed'][] = array(
+							'id'   => $media_id,
+							'code' => 'media_delete_failed',
+						);
+					}
+				}
+				break;
+
+			case 'move':
+				$target_folder = $request->get_param( 'folder_id' );
+				$target_folder = null === $target_folder ? null : absint( $target_folder );
+
+				if ( null === $target_folder ) {
+					return $this->error_response(
+						'missing_folder_id',
+						__( 'Folder ID is required for move action.', 'wp-filetron' ),
+						400
+					);
+				}
+
+				if ( $target_folder > 0 && ! Folder_Manager::get_folder( $target_folder ) ) {
+					return $this->error_response(
+						'folder_not_found',
+						__( 'The specified folder does not exist.', 'wp-filetron' ),
+						404
+					);
+				}
+
+				foreach ( $media_ids as $media_id ) {
+					$media_id = absint( $media_id );
+					$post     = get_post( $media_id );
+
+					if ( ! $post || 'attachment' !== $post->post_type ) {
+						$results['failed'][] = array(
+							'id'   => $media_id,
+							'code' => 'media_not_found',
+						);
+						continue;
+					}
+
+					$assigned = Folder_Manager::assign_media_to_folder( $media_id, $target_folder );
+
+					if ( $assigned ) {
+						$results['success_ids'][] = $media_id;
+					} else {
+						$results['failed'][] = array(
+							'id'   => $media_id,
+							'code' => 'folder_assignment_failed',
+						);
 					}
 				}
 				break;
@@ -1320,10 +1446,11 @@ class REST_API {
 				}
 
 				foreach ( $media_ids as $media_id ) {
+					$media_id = absint( $media_id );
 					foreach ( $tag_ids as $tag_id ) {
 						Tag_Manager::add_tag_to_media( $media_id, $tag_id );
 					}
-					$results['success']++;
+					$results['success_ids'][] = $media_id;
 				}
 				break;
 
@@ -1334,14 +1461,19 @@ class REST_API {
 				);
 		}
 
+		$data = array(
+			'success_count' => count( $results['success_ids'] ),
+			'failed_count'  => count( $results['failed'] ),
+			'success_ids'   => array_map( 'absint', $results['success_ids'] ),
+		);
+
+		if ( ! empty( $results['failed'] ) ) {
+			$data['failed'] = $results['failed'];
+		}
+
 		return $this->success_response(
-			$results,
-			sprintf(
-				/* translators: 1: Success count, 2: Failed count */
-				__( 'Bulk operation completed. Success: %1$d, Failed: %2$d', 'wp-filetron' ),
-				$results['success'],
-				$results['failed']
-			)
+			$data,
+			__( 'Bulk operation completed.', 'wp-filetron' )
 		);
 	}
 

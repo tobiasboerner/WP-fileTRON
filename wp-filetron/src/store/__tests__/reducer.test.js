@@ -170,4 +170,70 @@ describe( 'store reducer', () => {
 		const cleared = reducer( errored, actions.clearError() );
 		expect( cleared.error ).toBeNull();
 	} );
+
+	it( 'removes media items and clears related state', () => {
+		const seeded = reducer(
+			initState,
+			actions.setMedia(
+				[
+					{ id: 1, title: 'Keep me' },
+					{ id: 2, title: 'Remove me' },
+				],
+				2,
+				1,
+				1
+			)
+		);
+		const withSelection = {
+			...seeded,
+			selectedMedia: [ 2 ],
+			previewMediaId: 2,
+		};
+
+		const nextState = reducer(
+			withSelection,
+			actions.removeMediaItems( [ 2 ] )
+		);
+
+		expect( nextState.media ).toHaveLength( 1 );
+		expect( nextState.media[ 0 ].id ).toBe( 1 );
+		expect( nextState.mediaTotal ).toBe( 1 );
+		expect( nextState.selectedMedia ).toEqual( [] );
+		expect( nextState.previewMediaId ).toBeNull();
+	} );
+
+	it( 'updates folder assignments for multiple media items', () => {
+		const seeded = reducer(
+			initState,
+			actions.setMedia(
+				[
+					{ id: 1, folder_id: 0 },
+					{ id: 2, folder_id: 0 },
+				],
+				2,
+				1,
+				1
+			)
+		);
+
+		const updated = reducer(
+			seeded,
+			actions.updateMediaFolders( [ 1, 2 ], 7 )
+		);
+
+		expect( updated.media.map( ( item ) => item.folder_id ) ).toEqual( [
+			7, 7,
+		] );
+	} );
+
+	it( 'tracks preview media id explicitly', () => {
+		const withPreview = reducer( initState, actions.setPreviewMedia( 5 ) );
+		expect( withPreview.previewMediaId ).toBe( 5 );
+
+		const clearedPreview = reducer(
+			withPreview,
+			actions.clearPreviewMedia()
+		);
+		expect( clearedPreview.previewMediaId ).toBeNull();
+	} );
 } );

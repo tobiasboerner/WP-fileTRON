@@ -138,6 +138,23 @@ export function getMediaPerPage( state ) {
 }
 
 /**
+ * Preview selectors
+ */
+
+export function getPreviewMediaId( state ) {
+	return state.previewMediaId;
+}
+
+export function getPreviewMedia( state ) {
+	const id = getPreviewMediaId( state );
+	if ( id === null || id === undefined ) {
+		return null;
+	}
+
+	return getMediaById( state, id ) || null;
+}
+
+/**
  * UI Selectors
  */
 

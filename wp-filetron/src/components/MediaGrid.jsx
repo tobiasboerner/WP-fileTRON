@@ -4,16 +4,22 @@
  * Renders uploaded media items in a simple grid/list presentation.
  */
 
-import { useCallback, useMemo } from '@wordpress/element';
+import { useCallback, useMemo, useState, useId } from '@wordpress/element';
 import { useDispatch, useSelect } from '@wordpress/data';
 import { __, _n, sprintf } from '@wordpress/i18n';
+import { Button, Modal, SelectControl } from '@wordpress/components';
+import { store as noticesStore } from '@wordpress/notices';
 import classNames from 'classnames';
 import { STORE_NAME } from '../store';
 import LoadingSpinner from './LoadingSpinner';
 import MediaDetailsPanel from './MediaDetailsPanel';
+import { mediaAPI, handleAPIError } from '../api/endpoints';
+import { SNACKBAR_TIMEOUT } from '../utils/snackbar';
+import MediaPreviewModal from './MediaPreviewModal';
 
 export default function MediaGrid() {
 	const dispatch = useDispatch( STORE_NAME );
+	const { createNotice, removeNotice } = useDispatch( noticesStore );
 	const {
 		media,
 		viewMode,
@@ -22,6 +28,8 @@ export default function MediaGrid() {
 		selectedMedia,
 		mediaPagination,
 		mediaPerPage,
+		folders,
+		previewMedia,
 	} = useSelect( ( select ) => {
 		const store = select( STORE_NAME );
 		return {
@@ -36,8 +44,64 @@ export default function MediaGrid() {
 				? store.getMediaPagination()
 				: { total: 0, totalPages: 0, currentPage: 1 },
 			mediaPerPage: store.getMediaPerPage ? store.getMediaPerPage() : 50,
+			folders: store.getFolders ? store.getFolders() : [],
+			previewMedia: store.getPreviewMedia
+				? store.getPreviewMedia()
+				: null,
 		};
 	} );
+
+	const [ isDeleteOpen, setIsDeleteOpen ] = useState( false );
+	const [ isMoveOpen, setIsMoveOpen ] = useState( false );
+	const [ isDeleteProcessing, setIsDeleteProcessing ] = useState( false );
+	const [ isMoveProcessing, setIsMoveProcessing ] = useState( false );
+	const [ deleteError, setDeleteError ] = useState( null );
+	const [ moveError, setMoveError ] = useState( null );
+	const [ moveFolderId, setMoveFolderId ] = useState(
+		selectedFolder === null || selectedFolder === undefined
+			? 0
+			: Number( selectedFolder )
+	);
+	const deleteTitleId = useId();
+	const moveTitleId = useId();
+
+	const notify = useCallback(
+		( status, message ) => {
+			const noticeId = createNotice?.( status, message, {
+				type: 'snackbar',
+				explicitDismiss: true,
+			} );
+
+			if ( noticeId && removeNotice ) {
+				setTimeout( () => {
+					removeNotice( noticeId );
+				}, SNACKBAR_TIMEOUT );
+			}
+		},
+		[ createNotice, removeNotice ]
+	);
+
+	const moveOptions = useMemo( () => {
+		const baseOptions = [
+			{
+				label: __( 'All files', 'wp-filetron' ),
+				value: 0,
+			},
+		];
+
+		const sorted = [ ...folders ].sort( ( a, b ) =>
+			( a?.name || '' ).localeCompare( b?.name || '' )
+		);
+
+		sorted.forEach( ( folder ) => {
+			baseOptions.push( {
+				label: folder?.name || __( '(Untitled folder)', 'wp-filetron' ),
+				value: Number( folder.id ),
+			} );
+		} );
+
+		return baseOptions;
+	}, [ folders ] );
 
 	const items = useMemo( () => media || [], [ media ] );
 	const filteredItems = useMemo( () => {
@@ -140,6 +204,199 @@ export default function MediaGrid() {
 		[ dispatch, selectedIds ]
 	);
 
+	const closeDeleteModal = useCallback( () => {
+		if ( isDeleteProcessing ) {
+			return;
+		}
+		setIsDeleteOpen( false );
+		setDeleteError( null );
+	}, [ isDeleteProcessing ] );
+
+	const closeMoveModal = useCallback( () => {
+		if ( isMoveProcessing ) {
+			return;
+		}
+		setIsMoveOpen( false );
+		setMoveError( null );
+	}, [ isMoveProcessing ] );
+
+	const handleDeleteConfirm = useCallback( async () => {
+		if ( isDeleteProcessing || selectedIds.length === 0 ) {
+			return;
+		}
+
+		setIsDeleteProcessing( true );
+		setDeleteError( null );
+
+		try {
+			let response;
+			if ( selectedIds.length === 1 ) {
+				response = await mediaAPI.delete( selectedIds[ 0 ] );
+			} else {
+				response = await mediaAPI.bulk( 'delete', selectedIds );
+			}
+
+			if ( ! response?.success ) {
+				throw new Error(
+					response?.message ||
+						__( 'Failed to delete media items.', 'wp-filetron' )
+				);
+			}
+
+			let successIds = [];
+			if (
+				Array.isArray( response?.data?.success_ids ) &&
+				response.data.success_ids.length
+			) {
+				successIds = response.data.success_ids;
+			} else if ( response?.data?.id ) {
+				successIds = [ response.data.id ];
+			}
+
+			if ( successIds.length ) {
+				dispatch.removeMediaItems( successIds );
+				notify(
+					'success',
+					sprintf(
+						/* translators: %s: number of files deleted. */
+						_n(
+							'%s file deleted.',
+							'%s files deleted.',
+							successIds.length,
+							'wp-filetron'
+						),
+						successIds.length
+					)
+				);
+			}
+
+			if ( response?.data?.failed?.length ) {
+				const failedCount = response.data.failed.length;
+				notify(
+					'warning',
+					sprintf(
+						/* translators: %s: number of files that could not be deleted. */
+						_n(
+							'%s file could not be deleted.',
+							'%s files could not be deleted.',
+							failedCount,
+							'wp-filetron'
+						),
+						failedCount
+					)
+				);
+			}
+
+			dispatch.clearMediaSelection();
+			dispatch.clearPreviewMedia();
+			setIsDeleteOpen( false );
+		} catch ( error ) {
+			const message =
+				handleAPIError( error ) ||
+				__( 'Failed to delete media items.', 'wp-filetron' );
+			setDeleteError( message );
+			notify( 'error', message );
+		} finally {
+			setIsDeleteProcessing( false );
+		}
+	}, [ dispatch, isDeleteProcessing, notify, selectedIds ] );
+
+	const handleMoveConfirm = useCallback( async () => {
+		if ( isMoveProcessing || selectedIds.length === 0 ) {
+			return;
+		}
+
+		setIsMoveProcessing( true );
+		setMoveError( null );
+
+		try {
+			const response = await mediaAPI.bulk( 'move', selectedIds, {
+				folder_id: moveFolderId,
+			} );
+
+			if ( ! response?.success ) {
+				throw new Error(
+					response?.message ||
+						__( 'Failed to move media items.', 'wp-filetron' )
+				);
+			}
+
+			let successIds = [];
+			if ( Array.isArray( response?.data?.success_ids ) ) {
+				successIds = response.data.success_ids;
+			}
+
+			if ( successIds.length ) {
+				dispatch.updateMediaFolders( successIds, moveFolderId );
+				notify(
+					'success',
+					sprintf(
+						/* translators: %s: number of files moved. */
+						_n(
+							'%s file moved.',
+							'%s files moved.',
+							successIds.length,
+							'wp-filetron'
+						),
+						successIds.length
+					)
+				);
+			}
+
+			if ( response?.data?.failed?.length ) {
+				const failedCount = response.data.failed.length;
+				notify(
+					'warning',
+					sprintf(
+						/* translators: %s: number of files that could not be moved. */
+						_n(
+							'%s file could not be moved.',
+							'%s files could not be moved.',
+							failedCount,
+							'wp-filetron'
+						),
+						failedCount
+					)
+				);
+
+				if ( ! successIds.length ) {
+					setMoveError(
+						__(
+							'Failed to move the selected files.',
+							'wp-filetron'
+						)
+					);
+					setIsMoveProcessing( false );
+					return;
+				}
+			}
+
+			dispatch.clearMediaSelection();
+			dispatch.clearPreviewMedia();
+			setIsMoveOpen( false );
+		} catch ( error ) {
+			const message =
+				handleAPIError( error ) ||
+				__( 'Failed to move media items.', 'wp-filetron' );
+			setMoveError( message );
+			notify( 'error', message );
+		} finally {
+			setIsMoveProcessing( false );
+		}
+	}, [ dispatch, moveFolderId, isMoveProcessing, notify, selectedIds ] );
+
+	const openPreviewModal = useCallback( () => {
+		if ( selectedIds.length !== 1 ) {
+			return;
+		}
+
+		dispatch.setPreviewMedia( selectedIds[ 0 ] );
+	}, [ dispatch, selectedIds ] );
+
+	const closePreviewModal = useCallback( () => {
+		dispatch.clearPreviewMedia();
+	}, [ dispatch ] );
+
 	if ( isLoading ) {
 		return (
 			<div className="wft-flex wft-items-center wft-justify-center wft-h-full wft-p-12">
@@ -152,34 +409,147 @@ export default function MediaGrid() {
 
 	if ( ! hasItems ) {
 		return (
-			<div className="wft-p-6">
-				<div className="wft-bg-white wft-rounded-lg wft-shadow-sm wft-p-12 wft-text-center">
-					<div className="wft-mb-4">
-						<svg
-							className="wft-w-16 wft-h-16 wft-mx-auto wft-text-gray-400"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24"
-						>
-							<path
-								strokeLinecap="round"
-								strokeLinejoin="round"
-								strokeWidth={ 2 }
-								d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-							/>
-						</svg>
+			<>
+				<div className="wft-p-6">
+					<div className="wft-bg-white wft-rounded-lg wft-shadow-sm wft-p-12 wft-text-center">
+						<div className="wft-mb-4">
+							<svg
+								className="wft-w-16 wft-h-16 wft-mx-auto wft-text-gray-400"
+								fill="none"
+								stroke="currentColor"
+								viewBox="0 0 24 24"
+							>
+								<path
+									strokeLinecap="round"
+									strokeLinejoin="round"
+									strokeWidth={ 2 }
+									d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+								/>
+							</svg>
+						</div>
+						<h3 className="wft-text-lg wft-font-semibold wft-text-gray-900 wft-mb-2">
+							{ emptyStateTitle }
+						</h3>
+						<p className="wft-text-gray-600">
+							{ emptyStateDescription }
+						</p>
+						<p className="wft-text-sm wft-text-gray-500 wft-mt-4">
+							{ toolbarUploadHint }
+						</p>
 					</div>
-					<h3 className="wft-text-lg wft-font-semibold wft-text-gray-900 wft-mb-2">
-						{ emptyStateTitle }
-					</h3>
-					<p className="wft-text-gray-600">
-						{ emptyStateDescription }
-					</p>
-					<p className="wft-text-sm wft-text-gray-500 wft-mt-4">
-						{ toolbarUploadHint }
-					</p>
 				</div>
-			</div>
+				{ isDeleteOpen && (
+					<Modal
+						title={ sprintf(
+							/* translators: %s: number of files scheduled for deletion. */
+							_n(
+								'Delete %s file?',
+								'Delete %s files?',
+								selectedIds.length,
+								'wp-filetron'
+							),
+							selectedIds.length
+						) }
+						onRequestClose={ closeDeleteModal }
+						shouldCloseOnClickOutside={ ! isDeleteProcessing }
+						shouldCloseOnEsc={ ! isDeleteProcessing }
+						className="wft-filetron-modal"
+						aria-labelledby={ deleteTitleId }
+					>
+						<p id={ deleteTitleId } className="wft-mb-4">
+							{ sprintf(
+								/* translators: %s: number of selected files. */
+								_n(
+									'This action will permanently delete %s file. This cannot be undone.',
+									'This action will permanently delete %s files. This cannot be undone.',
+									selectedIds.length,
+									'wp-filetron'
+								),
+								selectedIds.length
+							) }
+						</p>
+						{ deleteError && (
+							<div className="wft-mb-3 wft-rounded wft-bg-red-50 wft-px-3 wft-py-2 wft-text-sm wft-text-red-700">
+								{ deleteError }
+							</div>
+						) }
+						<div className="wft-flex wft-justify-end wft-gap-2">
+							<Button
+								variant="secondary"
+								onClick={ closeDeleteModal }
+								disabled={ isDeleteProcessing }
+							>
+								{ __( 'Cancel', 'wp-filetron' ) }
+							</Button>
+							<Button
+								variant="primary"
+								isDestructive
+								onClick={ handleDeleteConfirm }
+								isBusy={ isDeleteProcessing }
+							>
+								{ __( 'Delete', 'wp-filetron' ) }
+							</Button>
+						</div>
+					</Modal>
+				) }
+				{ isMoveOpen && (
+					<Modal
+						title={ __( 'Move files', 'wp-filetron' ) }
+						onRequestClose={ closeMoveModal }
+						shouldCloseOnClickOutside={ ! isMoveProcessing }
+						shouldCloseOnEsc={ ! isMoveProcessing }
+						className="wft-filetron-modal"
+						aria-labelledby={ moveTitleId }
+					>
+						<div className="wft-space-y-4">
+							<p id={ moveTitleId }>
+								{ __(
+									'Select a target folder for the selected files.',
+									'wp-filetron'
+								) }
+							</p>
+							<SelectControl
+								label={ __( 'Target folder', 'wp-filetron' ) }
+								value={ String( moveFolderId ) }
+								onChange={ ( value ) =>
+									setMoveFolderId( Number( value ) )
+								}
+								options={ moveOptions.map( ( option ) => ( {
+									label: option.label,
+									value: String( option.value ),
+								} ) ) }
+							/>
+							{ moveError && (
+								<div className="wft-rounded wft-bg-red-50 wft-px-3 wft-py-2 wft-text-sm wft-text-red-700">
+									{ moveError }
+								</div>
+							) }
+							<div className="wft-flex wft-justify-end wft-gap-2">
+								<Button
+									variant="secondary"
+									onClick={ closeMoveModal }
+									disabled={ isMoveProcessing }
+								>
+									{ __( 'Cancel', 'wp-filetron' ) }
+								</Button>
+								<Button
+									variant="primary"
+									onClick={ handleMoveConfirm }
+									isBusy={ isMoveProcessing }
+								>
+									{ __( 'Move', 'wp-filetron' ) }
+								</Button>
+							</div>
+						</div>
+					</Modal>
+				) }
+				{ previewMedia && (
+					<MediaPreviewModal
+						item={ previewMedia }
+						onRequestClose={ closePreviewModal }
+					/>
+				) }
+			</>
 		);
 	}
 
@@ -210,7 +580,7 @@ export default function MediaGrid() {
 					</h3>
 					<p className="wft-leading-snug">
 						{ __(
-							'Bulk actions arrive in Phase 6. For now you can clear the selection or open files individually for details.',
+							'Nutze die Aktionsleiste, um ausgewählte Dateien zu verschieben oder zu löschen.',
 							'wp-filetron'
 						) }
 					</p>
@@ -260,10 +630,62 @@ export default function MediaGrid() {
 								totalAvailable
 							) }
 					</span>
-					<div className="wft-flex wft-items-center wft-gap-3">
-						<button
-							type="button"
+					<div className="wft-flex wft-flex-wrap wft-items-center wft-gap-2">
+						{ selectedIds.length === 1 && (
+							<Button
+								variant="secondary"
+								onClick={ openPreviewModal }
+								disabled={
+									isDeleteProcessing || isMoveProcessing
+								}
+								data-testid="wft-preview-action"
+							>
+								{ __( 'Preview', 'wp-filetron' ) }
+							</Button>
+						) }
+						<Button
+							variant="secondary"
 							onClick={ () => {
+								setMoveError( null );
+								setMoveFolderId(
+									selectedFolder === null ||
+										selectedFolder === undefined
+										? 0
+										: Number( selectedFolder )
+								);
+								setIsMoveOpen( true );
+							} }
+							disabled={
+								isDeleteProcessing ||
+								isMoveProcessing ||
+								selectedIds.length === 0
+							}
+							data-testid="wft-move-action"
+						>
+							{ __( 'Move', 'wp-filetron' ) }
+						</Button>
+						<Button
+							variant="secondary"
+							isDestructive
+							onClick={ () => {
+								setDeleteError( null );
+								setIsDeleteOpen( true );
+							} }
+							disabled={
+								isDeleteProcessing ||
+								isMoveProcessing ||
+								selectedIds.length === 0
+							}
+							data-testid="wft-delete-action"
+						>
+							{ __( 'Delete', 'wp-filetron' ) }
+						</Button>
+						<Button
+							variant="link"
+							onClick={ () => {
+								if ( filteredItems.length === 0 ) {
+									return;
+								}
 								if (
 									filteredItems.length === selectedIds.length
 								) {
@@ -274,14 +696,13 @@ export default function MediaGrid() {
 									);
 								}
 							} }
-							className="wft-text-xs wft-font-medium wft-text-blue-700 hover:wft-text-blue-900"
 						>
 							{ filteredItems.length === selectedIds.length
 								? __( 'Unselect all', 'wp-filetron' )
 								: __( 'Select all', 'wp-filetron' ) }
-						</button>
-						<button
-							type="button"
+						</Button>
+						<Button
+							variant="link"
 							onClick={ () => {
 								if ( filteredItems.length ) {
 									dispatch.setSelectedMedia( [
@@ -289,17 +710,15 @@ export default function MediaGrid() {
 									] );
 								}
 							} }
-							className="wft-text-xs wft-font-medium wft-text-blue-700 hover:wft-text-blue-900"
 						>
 							{ __( 'Preview first', 'wp-filetron' ) }
-						</button>
-						<button
-							type="button"
+						</Button>
+						<Button
+							variant="link"
 							onClick={ () => dispatch.clearMediaSelection() }
-							className="wft-text-xs wft-font-medium wft-text-blue-700 hover:wft-text-blue-900"
 						>
 							{ __( 'Clear selection', 'wp-filetron' ) }
-						</button>
+						</Button>
 					</div>
 				</div>
 			) }
@@ -384,6 +803,7 @@ function MediaCard( { item, viewMode, isSelected, onSelect } ) {
 			onClick={ handleClick }
 			onKeyDown={ handleKeyDown }
 			aria-pressed={ isSelected }
+			data-media-id={ item.id }
 		>
 			{ isSelected && (
 				<span className="wft-absolute wft-top-3 wft-right-3 wft-flex wft-h-6 wft-w-6 wft-items-center wft-justify-center wft-rounded-full wft-bg-blue-600 wft-text-white wft-text-xs">

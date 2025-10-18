@@ -11,6 +11,10 @@ const mockDispatch = {
 	clearMediaSelection: jest.fn(),
 	setSelectedMedia: jest.fn(),
 	toggleMediaSelection: jest.fn(),
+	removeMediaItems: jest.fn(),
+	updateMediaFolders: jest.fn(),
+	setPreviewMedia: jest.fn(),
+	clearPreviewMedia: jest.fn(),
 };
 
 const selectReturnValue = {
@@ -40,6 +44,7 @@ jest.mock( '@wordpress/data', () => ( {
 			getSelectedFolder: () => selectReturnValue.selectedFolder,
 			getSelectedMedia: () => selectReturnValue.selectedMedia,
 			getMediaPagination: () => selectReturnValue.mediaPagination,
+			getPreviewMedia: () => null,
 		} ) ),
 } ) );
 
@@ -57,6 +62,33 @@ jest.mock( '../../store', () => ( {
 jest.mock( '@wordpress/notices', () => ( {
 	store: 'core/notices',
 } ) );
+
+jest.mock( '@wordpress/components', () => {
+	const { createElement } = require( '@wordpress/element' );
+	return {
+		Button: ( { children, ...props } ) =>
+			createElement( 'button', props, children ),
+		Modal: ( { children, ...props } ) =>
+			createElement( 'div', { ...props, role: 'dialog' }, children ),
+		SelectControl: ( { options = [], value, onChange, ...props } ) =>
+			createElement(
+				'select',
+				{
+					...props,
+					value,
+					onChange: ( event ) =>
+						onChange && onChange( event.target.value ),
+				},
+				options.map( ( option ) =>
+					createElement(
+						'option',
+						{ key: option.value, value: option.value },
+						option.label
+					)
+				)
+			),
+	};
+} );
 
 describe( 'MediaGrid', () => {
 	beforeEach( () => {

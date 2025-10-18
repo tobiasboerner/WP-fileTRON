@@ -409,4 +409,37 @@ test.describe( 'REST API Fehlerpfade', () => {
 			data: expect.objectContaining( { status: 400 } ),
 		} );
 	} );
+
+	test( 'verlangt Folder-ID bei Bulk-Move', async ( { requestUtils } ) => {
+		await expect(
+			requestUtils.rest( {
+				method: 'POST',
+				path: '/wft/v1/media/bulk',
+				data: {
+					media_ids: [ 123 ],
+					action: 'move',
+				},
+			} )
+		).rejects.toMatchObject( {
+			code: 'missing_folder_id',
+			data: expect.objectContaining( { status: 400 } ),
+		} );
+	} );
+
+	test( 'meldet unbekannten Ordner bei Bulk-Move', async ( { requestUtils } ) => {
+		await expect(
+			requestUtils.rest( {
+				method: 'POST',
+				path: '/wft/v1/media/bulk',
+				data: {
+					media_ids: [ 123 ],
+					action: 'move',
+					folder_id: 999999,
+				},
+			} )
+		).rejects.toMatchObject( {
+			code: 'folder_not_found',
+			data: expect.objectContaining( { status: 404 } ),
+		} );
+	} );
 } );

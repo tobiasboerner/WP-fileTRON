@@ -200,6 +200,18 @@ export const mediaAPI = {
 	},
 
 	/**
+	 * Delete a media item
+	 * @param {number} id - Media ID
+	 * @return {Promise}
+	 */
+	delete( id ) {
+		return apiFetch( {
+			path: `${ API_NAMESPACE }/media/${ id }`,
+			method: 'DELETE',
+		} );
+	},
+
+	/**
 	 * Update media metadata
 	 * @param {number} id - Media ID
 	 * @param {Object} data - Updated metadata
@@ -263,8 +275,12 @@ export function handleAPIError( error ) {
 				'Sitzung abgelaufen. Bitte Seite neu laden.',
 			invalid_folder_name: 'Ungültiger Ordnername.',
 			folder_not_found: 'Ordner nicht gefunden.',
+			missing_folder_id: 'Bitte wähle einen Zielordner.',
+			folder_assignment_failed:
+				'Die Datei konnte nicht in den Zielordner verschoben werden.',
 			invalid_tag_name: 'Ungültiger Tag-Name.',
 			media_not_found: 'Datei nicht gefunden.',
+			media_delete_failed: 'Die Datei konnte nicht gelöscht werden.',
 		};
 
 		return errorMessages[ error.code ] || `Fehler: ${ error.code }`;

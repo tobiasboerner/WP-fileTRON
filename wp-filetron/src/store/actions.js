@@ -116,6 +116,21 @@ export function addMediaItem( mediaItem ) {
 	};
 }
 
+export function removeMediaItems( mediaIds ) {
+	return {
+		type: 'REMOVE_MEDIA_ITEMS',
+		mediaIds,
+	};
+}
+
+export function updateMediaFolders( mediaIds, folderId ) {
+	return {
+		type: 'UPDATE_MEDIA_FOLDERS',
+		mediaIds,
+		folderId,
+	};
+}
+
 export function setMediaCurrentPage( page ) {
 	return {
 		type: 'SET_MEDIA_CURRENT_PAGE',
@@ -176,5 +191,18 @@ export function setUploadQueue( queue ) {
 	return {
 		type: 'SET_UPLOAD_QUEUE',
 		queue,
+	};
+}
+
+export function setPreviewMedia( mediaId ) {
+	return {
+		type: 'SET_PREVIEW_MEDIA',
+		mediaId,
+	};
+}
+
+export function clearPreviewMedia() {
+	return {
+		type: 'CLEAR_PREVIEW_MEDIA',
 	};
 }
