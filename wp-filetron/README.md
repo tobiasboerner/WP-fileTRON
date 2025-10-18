@@ -1,53 +1,43 @@
 # WP fileTRON
 
-Modern WordPress media manager with folder structure, tagging, and asset tracking. A powerful alternative to the default media library.
+Modern WordPress media manager with folder- and tag-basierter Organisation, Upload-Queue und React-Oberfläche. Das Team arbeitet aktuell am ersten Release Candidate; externe Mitentwicklung ist nicht vorgesehen, Feedback und Funktionswünsche sind jedoch willkommen.
 
 ## Features
 
-- 📁 **Hierarchical Folder Structure** - Organize media files in unlimited nested folders
-- 🏷️ **Tag System** - Multi-tag support with autocomplete and bulk operations
-- 🔍 **Advanced Search & Filters** - Find files quickly by type, date, size, tags, or content
-- 📊 **Asset Usage Tracking** - See where each file is used across your site
-- 🎨 **Modern UI** - Built with React and Tailwind CSS
-- ⚡ **Performance Optimized** - Lazy loading, virtual scrolling, and caching
-- 🌐 **i18n Ready** - Fully translatable
+- 📁 **Folder Browser** – Hierarchische Ordnerverwaltung mit Validierung gegen zyklische Beziehungen (Drag & Drop derzeit deaktiviert)
+- 🏷️ **Tagging** – Mehrfach-Tags pro Medium, REST-Validierung und differenzierte Fehlercodes
+- 📤 **Upload-Queue** – Batch-Uploads mit Fortschrittsanzeige, Rollback bei Fehlern und Snackbar-Feedback
+- 🗂️ **Media Grid** – Pagination, konfigurierbare `per_page`-Werte und automatische Aktualisierung nach Uploads
+- 📝 **Metadaten-Sidebar** – Inline-Bearbeitung relevanter Attachment-Felder mit Sofort-Feedback
+- ♿ **A11y-Fokus** – Tastaturfreundliche Modals, Snackbar-Liste, skalierbare Sidebar-Breite
+- 🌐 **I18n-ready** – Textdomain `wp-filetron`, Übersetzungen über `languages/`
 
 ## Requirements
 
 - **WordPress:** 6.0 or higher
 - **PHP:** 7.4 or higher (8.0+ recommended)
-- **Node.js:** 16.0 or higher (for development)
-- **npm:** 8.0 or higher (for development)
+- **Node.js:** 18.0 or higher (for development)
+- **npm:** 9.0 or higher (for development)
 
 ## Installation
 
-### For Users
+Derzeit befindet sich das Plugin auf dem Weg zum ersten Release Candidate und steht nicht für produktive Einsätze bereit.
 
-1. Download the latest release ZIP file from [GitHub Releases](https://github.com/yourusername/wp-filetron/releases)
-2. Go to WordPress Admin → Plugins → Add New → Upload Plugin
-3. Choose the ZIP file and click "Install Now"
-4. Activate the plugin
-5. Access WP fileTRON from the admin menu
+Für interne Tests:
 
-### For Developers
+1. Repository klonen (`wp-filetron` liegt im Projektroot).
+2. Abhängigkeiten installieren:
+   ```bash
+   composer install
+   npm install
+   ```
+3. Assets bauen:
+   ```bash
+   npm run build
+   ```
+4. Verzeichnis `wp-filetron/` nach `wp-content/plugins/wp-filetron` kopieren und das Plugin im WordPress-Backend aktivieren.
 
-```bash
-# Clone the repository
-git clone https://github.com/yourusername/wp-filetron.git
-cd wp-filetron
-
-# Install PHP dependencies
-composer install
-
-# Install JavaScript dependencies
-npm install
-
-# Build the frontend
-npm run build
-
-# For development with hot reload
-npm start
-```
+> Hinweis: Bitte keine Pull Requests einreichen. Feature-Vorschläge oder Fehlermeldungen gern über das interne Issue-Board oder die bekannten Ansprechpartner weitergeben.
 
 ## Development
 
@@ -98,8 +88,7 @@ wp-filetron/
 │   └── styles/         # SCSS/CSS files
 ├── assets/             # Static assets
 ├── build/              # Compiled JavaScript/CSS
-├── languages/          # Translation files
-└── vendor/             # Composer dependencies
+└── languages/          # Translation files
 ```
 
 ### End-to-End Testing
@@ -118,7 +107,7 @@ npx wp-env start
 npm run test:e2e
 ```
 
-If Chromium cannot be downloaded (e.g., due to network restrictions), install it outside the sandbox and copy the Playwright cache into the project before running the suite.
+> Hinweis: Falls der Chromium-Download blockiert ist, bitte Playwright-Binaries außerhalb der Sandbox installieren und den Cache vor Teststart bereitstellen.
 
 ## Security
 
@@ -133,14 +122,6 @@ Security is our top priority. This plugin follows WordPress coding standards and
 
 If you discover a security vulnerability, please see our [Security Policy](../SECURITY.md).
 
-## Contributing
-
-Contributions are welcome! Please read our [Contributing Guidelines](CONTRIBUTING.md) before submitting a pull request.
-
-## License
-
-This project is licensed under the GPL v2 or later - see the [LICENSE](LICENSE) file for details.
-
 ## Credits
 
 Built with:
@@ -149,16 +130,14 @@ Built with:
 - [Tailwind CSS](https://tailwindcss.com/)
 - [@wordpress/scripts](https://developer.wordpress.org/block-editor/reference-guides/packages/packages-scripts/)
 
-## Support
+## Roadmap & nächste Schritte
 
-- 📖 [Documentation](https://github.com/yourusername/wp-filetron/wiki)
-- 🐛 [Report Issues](https://github.com/yourusername/wp-filetron/issues)
-- 💬 [Discussions](https://github.com/yourusername/wp-filetron/discussions)
-
-## Roadmap
-
-See the [project roadmap](https://github.com/yourusername/wp-filetron/projects) for planned features and improvements.
+1. Upload-/Pagination-E2E-Tests in Playwright ergänzen und automatisieren.
+2. Drag-and-Drop-Interaktionen für Ordner neu aufsetzen und regressionssicher ausliefern.
+3. Fehlerpfade für Tag-/Media-Löschrouten in der REST-API erweitern und dokumentieren.
+4. Release-Candidate-Härtung: Security-Scans (`npm audit`, `composer audit`, WPScan) und Performance-Profiling.
+5. Phase 6 planen: Dateioperationen (Delete, Move) und Vorschau-Modal prototypen.
 
 ---
 
-Made with ❤️ by [Your Name](https://yourwebsite.com)
+Weitere Dokumentation: `API-DOCUMENTATION.md`, `WP-fileTRON-API.postman_collection.json`, `CHANGELOG.md`.

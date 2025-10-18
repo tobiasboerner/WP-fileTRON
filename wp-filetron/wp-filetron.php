@@ -1,13 +1,13 @@
 <?php
 /**
  * Plugin Name: WP fileTRON
- * Plugin URI: https://github.com/yourusername/wp-filetron
+ * Plugin URI: https://filetron.info
  * Description: Modern WordPress media manager with folder structure, tagging, and asset tracking. A powerful alternative to the default media library.
- * Version: 1.0.0
+ * Version: 0.0.0
  * Requires at least: 6.0
  * Requires PHP: 7.4
- * Author: Your Name
- * Author URI: https://yourwebsite.com
+ * Author: Tobias Börner
+ * Author URI: https://tobiasboerner.de
  * License: GPL v2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: wp-filetron

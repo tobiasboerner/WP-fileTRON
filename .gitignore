@@ -1,5 +1,6 @@
 # Internal development notes (not for public repo)
 .dev-notes/
+**/AGENTS.md
 
 # Dependencies
 /vendor/
