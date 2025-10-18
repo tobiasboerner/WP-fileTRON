@@ -13,7 +13,7 @@ WP fileTRON is an open-source WordPress plugin. Security and transparency are ou
 
 ## Supported Versions
 
-RC in development
+RC in development.
 
 ## Reporting a Vulnerability
 
