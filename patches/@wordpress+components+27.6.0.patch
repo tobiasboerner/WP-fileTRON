@@ -1,0 +1,6 @@
+*** Begin Patch
+*** Update File: node_modules/@wordpress/components/build/snackbar/index.js
+@@
+-const NOTICE_TIMEOUT = 10000;
++const NOTICE_TIMEOUT = 4000;
+*** End Patch

@@ -1,0 +1,455 @@
+{
+	"info": {
+		"_postman_id": "wft-api-collection",
+		"name": "WP fileTRON API",
+		"description": "Complete API collection for WP fileTRON plugin",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost/wp-json/wft/v1",
+			"type": "string"
+		},
+		{
+			"key": "wp_nonce",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Folders",
+			"item": [
+				{
+					"name": "Get All Folders",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-WP-Nonce",
+								"value": "{{wp_nonce}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/folders",
+							"host": [ "{{base_url}}" ],
+							"path": [ "folders" ]
+						}
+					}
+				},
+				{
+					"name": "Get Folders by Parent",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-WP-Nonce",
+								"value": "{{wp_nonce}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/folders?parent_id=0",
+							"host": [ "{{base_url}}" ],
+							"path": [ "folders" ],
+							"query": [
+								{
+									"key": "parent_id",
+									"value": "0"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Create Folder",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-WP-Nonce",
+								"value": "{{wp_nonce}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"My Test Folder\",\n  \"parent_id\": 0,\n  \"color\": \"#FF5733\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/folders",
+							"host": [ "{{base_url}}" ],
+							"path": [ "folders" ]
+						}
+					}
+				},
+				{
+					"name": "Update Folder",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "X-WP-Nonce",
+								"value": "{{wp_nonce}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Updated Folder Name\",\n  \"color\": \"#00FF00\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/folders/1",
+							"host": [ "{{base_url}}" ],
+							"path": [ "folders", "1" ]
+						}
+					}
+				},
+				{
+					"name": "Delete Folder",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "X-WP-Nonce",
+								"value": "{{wp_nonce}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/folders/1",
+							"host": [ "{{base_url}}" ],
+							"path": [ "folders", "1" ]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Tags",
+			"item": [
+				{
+					"name": "Get All Tags",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-WP-Nonce",
+								"value": "{{wp_nonce}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/tags",
+							"host": [ "{{base_url}}" ],
+							"path": [ "tags" ]
+						}
+					}
+				},
+				{
+					"name": "Search Tags",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-WP-Nonce",
+								"value": "{{wp_nonce}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/tags?search=test",
+							"host": [ "{{base_url}}" ],
+							"path": [ "tags" ],
+							"query": [
+								{
+									"key": "search",
+									"value": "test"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Create Tag",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-WP-Nonce",
+								"value": "{{wp_nonce}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Important\",\n  \"description\": \"Important files\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/tags",
+							"host": [ "{{base_url}}" ],
+							"path": [ "tags" ]
+						}
+					}
+				},
+				{
+					"name": "Update Tag",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "X-WP-Nonce",
+								"value": "{{wp_nonce}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Very Important\",\n  \"description\": \"Very important files\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/tags/1",
+							"host": [ "{{base_url}}" ],
+							"path": [ "tags", "1" ]
+						}
+					}
+				},
+				{
+					"name": "Delete Tag",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "X-WP-Nonce",
+								"value": "{{wp_nonce}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/tags/1",
+							"host": [ "{{base_url}}" ],
+							"path": [ "tags", "1" ]
+						}
+					}
+				},
+				{
+					"name": "Add Tags to Media",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-WP-Nonce",
+								"value": "{{wp_nonce}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"tag_ids\": [1, 2, 3]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/media/123/tags",
+							"host": [ "{{base_url}}" ],
+							"path": [ "media", "123", "tags" ]
+						}
+					}
+				},
+				{
+					"name": "Get Media Tags",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-WP-Nonce",
+								"value": "{{wp_nonce}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/media/123/tags",
+							"host": [ "{{base_url}}" ],
+							"path": [ "media", "123", "tags" ]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Media",
+			"item": [
+				{
+					"name": "Get All Media",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-WP-Nonce",
+								"value": "{{wp_nonce}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/media?per_page=20&page=1",
+							"host": [ "{{base_url}}" ],
+							"path": [ "media" ],
+							"query": [
+								{
+									"key": "per_page",
+									"value": "20"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Single Media",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-WP-Nonce",
+								"value": "{{wp_nonce}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/media/123",
+							"host": [ "{{base_url}}" ],
+							"path": [ "media", "123" ]
+						}
+					}
+				},
+				{
+					"name": "Update Media Metadata",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "X-WP-Nonce",
+								"value": "{{wp_nonce}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Updated Title\",\n  \"alt_text\": \"Updated alt text\",\n  \"description\": \"Updated description\",\n  \"folder_id\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/media/123",
+							"host": [ "{{base_url}}" ],
+							"path": [ "media", "123" ]
+						}
+					}
+				},
+				{
+					"name": "Get Media Usage",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-WP-Nonce",
+								"value": "{{wp_nonce}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/media/123/usage",
+							"host": [ "{{base_url}}" ],
+							"path": [ "media", "123", "usage" ]
+						}
+					}
+				},
+				{
+					"name": "Bulk Delete Media",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-WP-Nonce",
+								"value": "{{wp_nonce}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"media_ids\": [123, 124, 125],\n  \"action\": \"delete\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/media/bulk",
+							"host": [ "{{base_url}}" ],
+							"path": [ "media", "bulk" ]
+						}
+					}
+				},
+				{
+					"name": "Bulk Tag Media",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-WP-Nonce",
+								"value": "{{wp_nonce}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"media_ids\": [123, 124, 125],\n  \"action\": \"tag\",\n  \"tag_ids\": [1, 2]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/media/bulk",
+							"host": [ "{{base_url}}" ],
+							"path": [ "media", "bulk" ]
+						}
+					}
+				}
+			]
+		}
+	]
+}

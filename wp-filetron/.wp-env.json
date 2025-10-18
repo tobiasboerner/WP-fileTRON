@@ -1,0 +1,11 @@
+{
+	"plugins": [
+		"."
+	],
+	"core": null,
+	"config": {
+		"WP_DEBUG": true,
+		"WPT_TEST_USER": "admin",
+		"WPT_TEST_PASSWORD": "password"
+	}
+}

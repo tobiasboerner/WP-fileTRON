@@ -1,0 +1,22 @@
+{
+  "name": "wp-filetron",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://tobiasboerner@github.com/tobiasboerner/WP-fileTRON.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tobiasboerner/WP-fileTRON/issues"
+  },
+  "homepage": "https://github.com/tobiasboerner/WP-fileTRON#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.56.1",
+    "@types/node": "^24.8.1"
+  }
+}
