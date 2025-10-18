@@ -41,6 +41,10 @@ test.describe( 'Bulk media actions', () => {
 		name: 'File preview',
 	} );
 	await expect( previewDialog ).toBeVisible( { timeout: 10_000 } );
+	await expect( previewDialog.locator( 'img' ) ).toBeVisible( {
+		strict: false,
+		timeout: 10_000,
+	} );
 	await expect(
 		previewDialog.getByRole( 'heading', { name: media.title } )
 	).toBeVisible();
@@ -81,6 +85,10 @@ test.describe( 'Bulk media actions', () => {
 
 	const moveDialog = page.getByRole( 'dialog', { name: 'Move files' } );
 	await expect( moveDialog ).toBeVisible( { timeout: 10_000 } );
+	await expect( moveDialog.locator( 'select' ) ).toBeVisible( {
+		strict: false,
+		timeout: 10_000,
+	} );
 
 	await moveDialog
 		.getByLabelText( 'Target folder' )
@@ -126,6 +134,9 @@ test.describe( 'Bulk media actions', () => {
 		name: /Delete \d+ file/,
 	} );
 	await expect( deleteDialog ).toBeVisible( { timeout: 10_000 } );
+	await expect(
+		deleteDialog.getByRole( 'button', { name: 'Cancel' } )
+	).toBeVisible( { timeout: 10_000 } );
 
 	await deleteDialog.getByRole( 'button', { name: 'Delete' } ).click();
 	await expect( deleteDialog ).toBeHidden( { timeout: 10_000 } );

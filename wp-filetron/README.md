@@ -8,6 +8,7 @@ Modern WordPress media manager with folder- and tag-basierter Organisation, Uplo
 - 🏷️ **Tagging** – Mehrfach-Tags pro Medium, REST-Validierung und differenzierte Fehlercodes
 - 📤 **Upload-Queue** – Batch-Uploads mit Fortschrittsanzeige, Rollback bei Fehlern und Snackbar-Feedback
 - 🗂️ **Media Grid** – Pagination, konfigurierbare `per_page`-Werte und automatische Aktualisierung nach Uploads
+- 🧰 **Bulk Actions** – Mehrfachauswahl mit Toolbar für Vorschau-, Verschiebe- und Löschaktionen
 - 📝 **Metadaten-Sidebar** – Inline-Bearbeitung relevanter Attachment-Felder mit Sofort-Feedback
 - ♿ **A11y-Fokus** – Tastaturfreundliche Modals, Snackbar-Liste, skalierbare Sidebar-Breite
 - 🌐 **I18n-ready** – Textdomain `wp-filetron`, Übersetzungen über `languages/`
@@ -132,11 +133,11 @@ Built with:
 
 ## Roadmap & nächste Schritte
 
-1. Upload-/Pagination-E2E-Tests in Playwright ergänzen und automatisieren.
+1. Bulk-Aktions-E2E stabilisieren (Modal-Öffnung im Headless-Run fixen) und `.wp-env`-Setup dokumentieren.
 2. Drag-and-Drop-Interaktionen für Ordner neu aufsetzen und regressionssicher ausliefern.
-3. Fehlerpfade für Tag-/Media-Löschrouten in der REST-API erweitern und dokumentieren.
-4. Release-Candidate-Härtung: Security-Scans (`npm audit`, `composer audit`, WPScan) und Performance-Profiling.
-5. Phase 6 planen: Dateioperationen (Delete, Move) und Vorschau-Modal prototypen.
+3. REST-Fehlerpfade für Delete/Move weiter schärfen und Capability-Checks dokumentieren.
+4. Release-Candidate-Härtung: Security-Scans (`npm audit`, `composer audit`, WPScan`) und Performance-Profiling.
+5. Phase-6-Nacharbeiten: Preview-Modal verfeinern, Doku & Screenshots ergänzen.
 
 ---
 

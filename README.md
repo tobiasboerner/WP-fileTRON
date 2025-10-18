@@ -6,14 +6,14 @@ WP fileTRON ersetzt die Standard-Medienbibliothek von WordPress durch eine moder
 
 ## Aktueller Status
 
-- **Projektphase:** 5 – Datei-Upload & Anzeige (Testvorbereitung)
-- **Frontend:** Medienraster mit Pagination, Upload-Panel mit Queue und Snackbar-Feedback, Sidebar für Metadaten, barrierearme Modals
-- **Backend:** REST-API für Medien, Ordner und Tags inkl. Validierung, Upload-Endpunkt mit Rollback bei Fehlern
-- **Qualitätssicherung:** Unit-Tests für Reducer, Helper und Kernkomponenten; Playwright-E2E-Szenarien für Upload- und Pagination-Flows erfolgreich ausgeführt; weitere REST-Negativtests in Planung
+- **Projektphase:** 6 – Dateioperationen & Vorschau (UI/REST in Arbeit)
+- **Frontend:** Auswahl-Toolbar mit Vorschau-, Verschiebe- und Löschaktionen, neues Preview-Modal, Pagination- und Snackbar-Feedback bestehen fort; Drag & Drop weiterhin deaktiviert
+- **Backend:** REST-API bietet nun Delete-Endpoint sowie robustere Bulk-Aktionen (move/delete) mit differenzierten Fehlercodes
+- **Qualitätssicherung:** Unit-Tests für Store/Reducer und Komponenten grün; REST-Playwright-Suite stabil; neue Bulk-Aktions-E2E-Szenarien flaken (Modals erscheinen nicht zuverlässig) und werden aktuell untersucht
 
 ## Hauptfunktionen
 
-- React-UI für Media Grid/List inklusive Upload-Overlay, Pagination-Steuerung und Metadaten-Sidebar
+- React-UI für Media Grid/List inklusive Upload-Overlay, Pagination-Steuerung, Metadaten-Sidebar und Mehrfachauswahl mit Vorschau-/Move-/Delete-Aktionen
 - Ordner- und Tag-Management mit REST-API, inklusive Validierung zyklischer Beziehungen und differenzierter Fehlercodes
 - Upload-Queue mit Echtzeit-Status, Snackbar-Notices und Store-Synchronisierung nach erfolgreichen Batches
 - Drag-and-Drop-Vorbereitung für Ordnerstrukturen (derzeit deaktiviert, Fix in Arbeit)
@@ -92,11 +92,11 @@ Weitere detailspezifische Plugin-Hinweise finden sich in `wp-filetron/README.md`
 
 ## Roadmap & nächste Schritte
 
-1. REST-Negativtests für Tag- und Media-Löschrouten erweitern, um Fehlerszenarien abzudecken.
-2. Playwright-E2E-Suite für Upload-/Pagination-Flows stabilisieren und `.wp-env.json` finalisieren.
+1. Bulk-Aktions-UI: Vorschau-/Move-/Delete-Modals im Playwright-E2E zuverlässig triggern (aktuell Timeout).
+2. `.wp-env.json` finalisieren und E2E-Testlauf dokumentieren (`npm run wp-env start` Workflow).
 3. Drag-and-Drop-Verhalten überarbeiten und nach erfolgreicher Stabilisierung wieder aktivieren.
 4. Sicherheits-Checks (`npm audit`, `composer audit`, WPScan) als Release-Gate automatisieren.
-5. Phase 6 vorbereiten: Dateioperationen (Löschen, Verschieben) und Medienvorschau implementieren.
+5. Phase-6-Nacharbeiten: Fehlende REST-Capability-Checks (DELETE/move) prüfen und Dokumentation (Preview-Modal) ergänzen.
 
 ## Mitwirken & Feedback
 
