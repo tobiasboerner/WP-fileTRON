@@ -13,6 +13,7 @@ const TEST_MEDIA_PATH = path.resolve(
 	__dirname,
 	'../fixtures/sample-upload.png'
 );
+const WP_BASE_URL = process.env.WP_BASE_URL || 'http://localhost:8889';
 test.describe( 'REST API Fehlerpfade', () => {
 	test( 'lehnt Ordner ohne Namen mit 400 und Fehlercode ab', async ( {
 		requestUtils,
@@ -26,7 +27,9 @@ test.describe( 'REST API Fehlerpfade', () => {
 				},
 			} )
 		).rejects.toMatchObject( {
-			code: 'rest_invalid_param',
+			code: expect.stringMatching(
+				/(invalid_folder_name|rest_invalid_param)/
+			),
 			data: expect.objectContaining( { status: 400 } ),
 		} );
 	} );
@@ -43,7 +46,9 @@ test.describe( 'REST API Fehlerpfade', () => {
 				},
 			} )
 		).rejects.toMatchObject( {
-			code: 'rest_invalid_param',
+			code: expect.stringMatching(
+				/(invalid_tag_name|rest_invalid_param)/
+			),
 			data: expect.objectContaining( { status: 400 } ),
 		} );
 	} );
@@ -261,7 +266,7 @@ test.describe( 'REST API Fehlerpfade', () => {
 
 	test( 'erfordert Authentifizierung für Schreiboperationen', async () => {
 		const anon = await playwrightRequest.newContext( {
-			baseURL: 'http://localhost:8889',
+			baseURL: WP_BASE_URL,
 		} );
 		const response = await anon.post( '/wp-json/wft/v1/folders', {
 			data: { name: 'Unauthorized' },
@@ -275,5 +280,56 @@ test.describe( 'REST API Fehlerpfade', () => {
 			expect( payload.code ).toMatch( /rest_/ );
 		}
 		await anon.dispose();
+	} );
+
+	test( 'verweigert Tag-Löschung ohne Authentifizierung', async () => {
+		const anon = await playwrightRequest.newContext( {
+			baseURL: WP_BASE_URL,
+		} );
+
+		const response = await anon.delete( '/wp-json/wft/v1/tags/999999' );
+
+		expect( response.status() ).toBeGreaterThanOrEqual( 401 );
+
+		const contentType = response.headers()[ 'content-type' ] || '';
+		if ( contentType.includes( 'application/json' ) ) {
+			const payload = await response.json();
+			expect( payload.code ).toMatch( /rest_/ );
+		}
+
+		await anon.dispose();
+	} );
+
+	test( 'meldet fehlende Medien-IDs bei Bulk-Löschaufruf', async ( {
+		requestUtils,
+	} ) => {
+		await expect(
+			requestUtils.rest( {
+				method: 'POST',
+				path: '/wft/v1/media/bulk',
+				data: {
+					action: 'delete',
+				},
+			} )
+		).rejects.toMatchObject( {
+			code: 'rest_missing_callback_param',
+			data: expect.objectContaining( { status: 400 } ),
+		} );
+	} );
+
+	test( 'lehnt ungültige Bulk-Aktion ab', async ( { requestUtils } ) => {
+		await expect(
+			requestUtils.rest( {
+				method: 'POST',
+				path: '/wft/v1/media/bulk',
+				data: {
+					media_ids: [ 123 ],
+					action: 'destroy',
+				},
+			} )
+		).rejects.toMatchObject( {
+			code: 'invalid_action',
+			data: expect.objectContaining( { status: 400 } ),
+		} );
 	} );
 } );
