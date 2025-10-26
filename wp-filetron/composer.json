@@ -25,7 +25,8 @@
 		"phpunit/phpunit": "^9.0",
 		"squizlabs/php_codesniffer": "^3.7",
 		"wp-coding-standards/wpcs": "^3.0",
-		"phpstan/phpstan": "^1.10"
+		"phpstan/phpstan": "^1.10",
+		"php-stubs/wordpress-stubs": "^6.3"
 	},
 	"autoload": {
 		"psr-4": {
@@ -41,7 +42,7 @@
 		"test": "phpunit",
 		"phpcs": "phpcs --standard=WordPress includes/ admin/ wp-filetron.php",
 		"phpcbf": "phpcbf --standard=WordPress includes/ admin/ wp-filetron.php",
-		"phpstan": "phpstan analyse includes/ admin/ --level=5"
+		"phpstan": "phpstan analyse -c phpstan.neon"
 	},
 	"config": {
 		"allow-plugins": {

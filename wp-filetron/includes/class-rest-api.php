@@ -531,6 +531,26 @@ class REST_API {
 	}
 
 	/**
+	 * Check whether current user may delete a media item.
+	 *
+	 * @param int $media_id Media attachment ID.
+	 * @return bool
+	 */
+	private function current_user_can_delete_media( $media_id ) {
+		return current_user_can( 'delete_post', $media_id );
+	}
+
+	/**
+	 * Check whether current user may edit/move a media item.
+	 *
+	 * @param int $media_id Media attachment ID.
+	 * @return bool
+	 */
+	private function current_user_can_edit_media( $media_id ) {
+		return current_user_can( 'edit_post', $media_id );
+	}
+
+	/**
 	 * Return success response.
 	 *
 	 * @param mixed  $data    Response data.
@@ -1307,6 +1327,14 @@ class REST_API {
 			);
 		}
 
+		if ( ! $this->current_user_can_delete_media( $media_id ) ) {
+			return $this->error_response(
+				'media_delete_forbidden',
+				__( 'You are not allowed to delete this file.', 'wp-filetron' ),
+				403
+			);
+		}
+
 		// Remove folder mapping prior to deletion.
 		Folder_Manager::assign_media_to_folder( $media_id, 0 );
 
@@ -1378,6 +1406,15 @@ class REST_API {
 						continue;
 					}
 
+					if ( ! $this->current_user_can_delete_media( $media_id ) ) {
+						$results['failed'][] = array(
+							'id'      => $media_id,
+							'code'    => 'media_delete_forbidden',
+							'message' => __( 'You are not allowed to delete this file.', 'wp-filetron' ),
+						);
+						continue;
+					}
+
 					Folder_Manager::assign_media_to_folder( $media_id, 0 );
 
 					if ( wp_delete_attachment( $media_id, true ) ) {
@@ -1419,6 +1456,15 @@ class REST_API {
 						$results['failed'][] = array(
 							'id'   => $media_id,
 							'code' => 'media_not_found',
+						);
+						continue;
+					}
+
+					if ( ! $this->current_user_can_edit_media( $media_id ) ) {
+						$results['failed'][] = array(
+							'id'      => $media_id,
+							'code'    => 'media_move_forbidden',
+							'message' => __( 'You are not allowed to move this file.', 'wp-filetron' ),
 						);
 						continue;
 					}

@@ -437,7 +437,11 @@ POST /media/bulk
 | `tag_update_failed` | Database update failed |
 | `tag_delete_failed` | Database delete failed |
 | `media_not_found` | Media ID doesn't exist |
+| `media_delete_forbidden` | User lacks capability to delete one or more files |
+| `media_move_forbidden` | User lacks capability to move one or more files |
 | `missing_tag_ids` | Tag IDs required but not provided |
+| `missing_folder_id` | Folder ID required for move action |
+| `folder_assignment_failed` | Moving file into folder failed |
 | `invalid_action` | Bulk action not recognized |
 | `missing_file` | No upload file supplied |
 | `upload_failed` | WordPress upload handler returned an error |

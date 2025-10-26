@@ -275,6 +275,10 @@ export function handleAPIError( error ) {
 				'Sitzung abgelaufen. Bitte Seite neu laden.',
 			invalid_folder_name: 'Ungültiger Ordnername.',
 			folder_not_found: 'Ordner nicht gefunden.',
+			media_move_forbidden:
+				'Dir fehlt die Berechtigung, diese Datei zu verschieben.',
+			media_delete_forbidden:
+				'Dir fehlt die Berechtigung, diese Datei zu löschen.',
 			missing_folder_id: 'Bitte wähle einen Zielordner.',
 			folder_assignment_failed:
 				'Die Datei konnte nicht in den Zielordner verschoben werden.',
