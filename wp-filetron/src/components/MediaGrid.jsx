@@ -136,6 +136,23 @@ export default function MediaGrid() {
 			} )
 		);
 	}, [ selectedIds ] );
+
+	const folderNamesById = useMemo( () => {
+		if ( ! Array.isArray( folders ) || folders.length === 0 ) {
+			return {};
+		}
+
+		return folders.reduce( ( acc, folder ) => {
+			const folderId = Number( folder.id );
+			if ( Number.isNaN( folderId ) ) {
+				return acc;
+			}
+
+			acc[ folderId ] =
+				folder?.name || __( '(Untitled folder)', 'wp-filetron' );
+			return acc;
+		}, {} );
+	}, [ folders ] );
 	const selectedItems = useMemo( () => {
 		if ( selectedIdSet.size === 0 ) {
 			return [];
@@ -466,10 +483,7 @@ export default function MediaGrid() {
 					className="wft-filetron-modal"
 					aria-labelledby={ moveTitleId }
 				>
-					<div
-						className="wft-space-y-4"
-						data-testid="wft-move-modal"
-					>
+					<div className="wft-space-y-4" data-testid="wft-move-modal">
 						<p id={ moveTitleId }>
 							{ __(
 								'Select a target folder for the selected files.',
@@ -705,12 +719,15 @@ export default function MediaGrid() {
 										return;
 									}
 									if (
-										filteredItems.length === selectedIds.length
+										filteredItems.length ===
+										selectedIds.length
 									) {
 										dispatch.clearMediaSelection();
 									} else {
 										dispatch.setSelectedMedia(
-											filteredItems.map( ( item ) => item.id )
+											filteredItems.map(
+												( item ) => item.id
+											)
 										);
 									}
 								} }
@@ -749,23 +766,41 @@ export default function MediaGrid() {
 								'wft-flex wft-flex-col wft-gap-2': ! isGridView,
 							} ) }
 						>
-							{ filteredItems.map( ( item ) => (
-								<MediaCard
-									key={ item.id }
-									item={ item }
-									viewMode={ viewMode }
-									isSelected={
-										selectedIdSet.has( item.id ) ||
-										selectedIdSet.has( Number( item.id ) ) ||
-										selectedIdSet.has( item?.id?.toString?.() )
-									}
-									onSelect={ handlePrimarySelect }
-								/>
-							) ) }
+							{ filteredItems.map( ( item ) => {
+								const folderId = Number( item.folder_id );
+								const folderLabel =
+									folderNamesById[ folderId ] ||
+									( folderId === 0
+										? __( 'No folder', 'wp-filetron' )
+										: __(
+												'(Unknown folder)',
+												'wp-filetron'
+										  ) );
+
+								return (
+									<MediaCard
+										key={ item.id }
+										item={ item }
+										viewMode={ viewMode }
+										isSelected={
+											selectedIdSet.has( item.id ) ||
+											selectedIdSet.has(
+												Number( item.id )
+											) ||
+											selectedIdSet.has(
+												item?.id?.toString?.()
+											)
+										}
+										folderLabel={ folderLabel }
+										onSelect={ handlePrimarySelect }
+									/>
+								);
+							} ) }
 						</div>
 
 						{ ( totalPages > 1 ||
-							( perPageOptions && perPageOptions.length > 0 ) ) && (
+							( perPageOptions &&
+								perPageOptions.length > 0 ) ) && (
 							<PaginationControls
 								currentPage={ currentPage }
 								totalPages={ totalPages }
@@ -790,7 +825,13 @@ export default function MediaGrid() {
 	);
 }
 
-function MediaCard( { item, viewMode, isSelected, onSelect } ) {
+function MediaCard( {
+	item,
+	viewMode,
+	isSelected,
+	onSelect,
+	folderLabel = '',
+} ) {
 	const isGridView = viewMode !== 'list';
 
 	const preview = item.thumbnail || item.medium || item.url;
@@ -878,6 +919,14 @@ function MediaCard( { item, viewMode, isSelected, onSelect } ) {
 				<p className="wft-text-xs wft-text-gray-400">
 					{ new Date( item.uploaded ).toLocaleString() }
 				</p>
+				{ folderLabel && (
+					<p className="wft-flex wft-items-center wft-gap-1 wft-text-xs wft-text-gray-500 wft-truncate">
+						<span aria-hidden="true">📁</span>
+						<span className="wft-truncate" title={ folderLabel }>
+							{ folderLabel }
+						</span>
+					</p>
+				) }
 			</div>
 		</button>
 	);

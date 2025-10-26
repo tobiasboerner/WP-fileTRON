@@ -48,10 +48,7 @@ export default function MediaPreviewModal( { item, onRequestClose } ) {
 			onRequestClose={ onRequestClose }
 			className="wft-filetron-modal"
 		>
-			<div
-				className="wft-space-y-4"
-				data-testid="wft-preview-modal"
-			>
+			<div className="wft-space-y-4" data-testid="wft-preview-modal">
 				<div className="wft-rounded-md wft-overflow-hidden wft-bg-gray-100">
 					{ preview ? (
 						<img
